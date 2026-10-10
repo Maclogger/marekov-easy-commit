@@ -8,18 +8,18 @@
     <name>Simple_commit</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor url="https://www.yourcompany.com">YourCompany</vendor>
+    <vendor url="https://www.rucki.sk">Rucki</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        Enter short description for your plugin here.<br>
-        <em>most HTML tags may be used</em>
+        This plugin lets you create a commit message with simple click using the Claude subscription.
         ]]></description>
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.vcs</depends>
 
     <resource-bundle>messages.MyMessageBundle</resource-bundle>
 
@@ -29,5 +29,13 @@
         <toolWindow id="MyToolWindow" factoryClass="sk.rucki.simple_commit.MyToolWindowFactory"
                     icon="AllIcons.Toolwindows.ToolWindowPalette"/>
     </extensions>
+
+    <actions>
+        <action id="sk.rucki.simple_commit.SimpleCommitAction"
+                class="sk.rucki.simple_commit.SimpleCommitAction"
+                icon="AllIcons.Actions.Commit">
+            <add-to-group group-id="ChangesView.CommitToolbar" anchor="after" relative-to-action="Vcs.ShowMessageHistory"/>
+        </action>
+    </actions>
 
 </idea-plugin>

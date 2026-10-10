@@ -11,6 +11,8 @@ internal class SimpleCommitAction : DumbAwareAction() {
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-        println("My action performed!")
+        println("My action performed nicely!")
+
+
     }
 }
