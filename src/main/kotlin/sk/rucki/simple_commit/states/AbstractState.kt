@@ -23,6 +23,8 @@ abstract class AbstractState {
 
     protected fun startGeneratingNewCommitMessage(event: AnActionEvent, service: SimpleCommitService): AbstractState {
         val commitMessageArea = event.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL) ?: return this
+        commitMessageArea.setCommitMessage("")
+
         val changes = ChangesLoader.loadChanges(event)
         if (changes.isEmpty()) return this
 
