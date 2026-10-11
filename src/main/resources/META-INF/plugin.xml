@@ -28,6 +28,10 @@
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="Marekov Commit" displayType="BALLOON" bundle="messages.MyMessageBundle"
                            key="notification.group.marekov.commit"/>
+        <applicationConfigurable parentId="tools"
+                                 instance="sk.rucki.simple_commit.settings.SimpleCommitConfigurable"
+                                 id="sk.rucki.simple_commit.settings"
+                                 displayName="Marekov Easy Commit"/>
     </extensions>
 
     <actions>

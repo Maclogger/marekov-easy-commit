@@ -8,38 +8,31 @@ import com.intellij.util.EnvironmentUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import sk.rucki.simple_commit.settings.SimpleCommitSettings
 import java.io.File
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 class ClaudeCliException(message: String) : Exception(message)
-
-private const val MAX_DIFF_CHARS = 100_000
-
-private const val SYSTEM_PROMPT = """You write git commit messages.
-- First line: a concise summary in the imperative mood, at most 72 characters.
-- For larger changes add a blank line and a short body as "- " bullet points.
-- Output ONLY the commit message. No explanations, no quotes, no Markdown code blocks."""
 
 /**
  * Generates the commit message with `claude -p`. The diff goes in on stdin, the message comes back on stdout.
  */
 class ClaudeCliCommitMessageGenerator(
     private val findClaude: () -> String? = ::findClaudeOnPath,
-    private val model: String = "haiku",
-    private val timeout: Duration = 30.seconds,
+    // Read on every generation, so changes in the settings apply right away
+    private val loadSettings: () -> SimpleCommitSettings.State = { SimpleCommitSettings.getInstance().state.copy() },
 ) : ICommitMessageGenerator {
 
     override suspend fun generate(diff: String): String = withContext(Dispatchers.IO) {
+        val settings = loadSettings()
         val claude = findClaude() ?: throw ClaudeCliException("'claude' was not found on PATH. Install Claude Code and log in.")
 
         val diffFile = FileUtil.createTempFile("simple-commit", ".diff", true)
-        diffFile.writeText(diff.take(MAX_DIFF_CHARS))
+        diffFile.writeText(diff.take(settings.maxDiffChars))
 
         val commandLine = GeneralCommandLine(
             claude, "-p", "Write the commit message for the diff on stdin.",
-            "--system-prompt", SYSTEM_PROMPT,
-            "--model", model,
+            "--system-prompt", settings.systemPrompt,
+            "--model", settings.model.cliName,
             "--tools", "",                    // Claude only reads the diff, it must not run anything
             "--no-session-persistence",       // do not save every generation in the user's history
             "--setting-sources", "",          // do not load the user's settings, so their hooks do not fire
@@ -51,9 +44,9 @@ class ClaudeCliCommitMessageGenerator(
         val handler = CapturingProcessHandler(commandLine)
         try {
             // Interruptible, so cancelling the coroutine stops the waiting
-            val output = runInterruptible { handler.runProcess(timeout.inWholeMilliseconds.toInt()) }
+            val output = runInterruptible { handler.runProcess(settings.timeoutSeconds * 1_000) }
             when {
-                output.isTimeout -> throw ClaudeCliException("Claude did not answer within ${timeout.inWholeSeconds} seconds.")
+                output.isTimeout -> throw ClaudeCliException("Claude did not answer within ${settings.timeoutSeconds} seconds.")
                 output.exitCode != 0 -> throw ClaudeCliException("Claude failed: " + output.stdout.ifBlank { output.stderr }.trim())
                 else -> output.stdout.trim()
             }

@@ -7,9 +7,10 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import sk.rucki.simple_commit.generators.ClaudeCliCommitMessageGenerator
 import sk.rucki.simple_commit.generators.ClaudeCliException
+import sk.rucki.simple_commit.settings.ClaudeModel
+import sk.rucki.simple_commit.settings.SimpleCommitSettings
 import java.io.File
 import kotlin.io.path.createTempDirectory
-import kotlin.time.Duration.Companion.seconds
 
 /** Runs the generator against a shell script pretending to be `claude`, so the real Claude is never called. */
 class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
@@ -41,6 +42,18 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
         assertEquals("-p", args[0])
         assertEquals("", args[args.indexOf("--tools") + 1])
         assertEquals("", args[args.indexOf("--setting-sources") + 1])
+    }
+
+    fun `test uses the model, prompt and diff limit from the settings`() {
+        fakeClaude("""printf '%s\n' "$@" > "${'$'}DIR/args"; cat > "${'$'}DIR/stdin"; echo msg""")
+        val settings = SimpleCommitSettings.State(systemPrompt = "Be brief.", model = ClaudeModel.SONNET, maxDiffChars = 5)
+
+        runBlocking { generator(settings).generate("1234567890") }
+
+        val args = File(dir, "args").readLines()
+        assertEquals("sonnet", args[args.indexOf("--model") + 1])
+        assertEquals("Be brief.", args[args.indexOf("--system-prompt") + 1])
+        assertEquals("12345", File(dir, "stdin").readText())
     }
 
     fun `test failure reports what claude printed`() {
@@ -85,7 +98,8 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
         }
     }
 
-    private fun generator() = ClaudeCliCommitMessageGenerator(findClaude = { File(dir, "claude").path }, timeout = 2.seconds)
+    private fun generator(settings: SimpleCommitSettings.State = SimpleCommitSettings.State(timeoutSeconds = 2)) =
+        ClaudeCliCommitMessageGenerator(findClaude = { File(dir, "claude").path }, loadSettings = { settings })
 
     private fun generate(diff: String): String = runBlocking { generator().generate(diff) }
 

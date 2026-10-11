@@ -2,6 +2,7 @@ package sk.rucki.simple_commit.icons
 
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.AnimatedIcon
+import com.intellij.util.IconUtil
 import javax.swing.Icon
 
 /**
@@ -16,8 +17,11 @@ object SimpleCommitIcons {
     val CREATED: Icon = animated("created", 24)
     val ERROR: Icon = animated("error", 22)
 
-    private fun animated(state: String, frames: Int): Icon =
-        AnimatedIcon(FRAME_DELAY_MS, *Array(frames) { load("/icons/$state/${it + 1}.svg") })
+    /** The idle mascot, 4x bigger, for the settings page. */
+    val MASCOT: Icon = animated("idle", 36, scale = 4f)
+
+    private fun animated(state: String, frames: Int, scale: Float = 1f): Icon =
+        AnimatedIcon(FRAME_DELAY_MS, *Array(frames) { IconUtil.scale(load("/icons/$state/${it + 1}.svg"), null, scale) })
 
     private fun load(path: String): Icon = IconLoader.getIcon(path, SimpleCommitIcons::class.java)
 }
