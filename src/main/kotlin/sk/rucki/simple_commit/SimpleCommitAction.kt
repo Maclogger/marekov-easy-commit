@@ -4,12 +4,16 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.vcs.VcsDataKeys
-import com.intellij.openapi.vcs.changes.savedPatches.SavedPatchesProvider
 
 internal class SimpleCommitAction : DumbAwareAction() {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
+        val service = SimpleCommitService.getInstance(e.project) ?: return
+        val changes = ChangesLoader.loadChanges(e)
+        service.selectedFilesCountChanged(changes.size)
+
+        e.presentation.icon = service.state.icon
     }
 
     override fun actionPerformed(e: AnActionEvent) {

@@ -1,13 +1,18 @@
 package sk.rucki.simple_commit
 
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 
 @Service(Service.Level.PROJECT)
 class SimpleCommitService {
 
+    companion object {
+        fun getInstance(project: Project?): SimpleCommitService? = project?.service()
+    }
+
     @Volatile
     var state: SimpleCommitState = SimpleCommitState.DISABLED
-
 
     fun selectedFilesCountChanged(newCount: Int) {
         val atLeastOneFileSelected = newCount >= 1

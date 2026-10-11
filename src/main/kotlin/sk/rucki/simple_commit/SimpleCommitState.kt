@@ -1,9 +1,11 @@
 package sk.rucki.simple_commit
 
-enum class SimpleCommitState {
-    DISABLED,
-    AVAILABLE,
-    GENERATING,
-    CREATED,
-    ERROR,
+import javax.swing.Icon
+
+enum class SimpleCommitState(val icon: Icon) {
+    DISABLED(SimpleCommitIcons.DISABLED),
+    AVAILABLE(SimpleCommitIcons.AVAILABLE),
+    GENERATING(SimpleCommitIcons.GENERATING),
+    CREATED(SimpleCommitIcons.CREATED),
+    ERROR(SimpleCommitIcons.ERROR);
 }
