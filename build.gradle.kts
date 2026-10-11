@@ -14,8 +14,7 @@ dependencies {
     intellijPlatform {
         intellijIdea("2025.3.6.1")
         testFramework(TestFrameworkType.Platform)
-//        bundledModule("intellij.platform.vcs.impl")
-
+        bundledModule("intellij.platform.vcs.impl")
         // Add plugin dependencies for compilation here, for example:
         // bundledPlugin("com.intellij.java")
     }
