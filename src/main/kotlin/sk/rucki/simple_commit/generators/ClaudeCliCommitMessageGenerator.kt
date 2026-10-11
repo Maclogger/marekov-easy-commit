@@ -36,6 +36,10 @@ class ClaudeCliCommitMessageGenerator(
             "--tools", "",                    // Claude only reads the diff, it must not run anything
             "--no-session-persistence",       // do not save every generation in the user's history
             "--setting-sources", "",          // do not load the user's settings, so their hooks do not fire
+            // Speed: thinking first took ~3 s of the ~5 s API time, and connecting to the user's
+            // MCP servers added ~2 s on every call. A commit message needs neither.
+            "--settings", """{"alwaysThinkingEnabled":false}""",
+            "--strict-mcp-config",
         )
             .withInput(diffFile)
             .withWorkDirectory(FileUtil.getTempDirectory())   // so no project's CLAUDE.md is loaded

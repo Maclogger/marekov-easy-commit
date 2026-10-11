@@ -42,6 +42,8 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
         assertEquals("-p", args[0])
         assertEquals("", args[args.indexOf("--tools") + 1])
         assertEquals("", args[args.indexOf("--setting-sources") + 1])
+        assertEquals("""{"alwaysThinkingEnabled":false}""", args[args.indexOf("--settings") + 1])
+        assertTrue(args.contains("--strict-mcp-config"))
     }
 
     fun `test uses the model, prompt and diff limit from the settings`() {
