@@ -17,7 +17,7 @@ internal class SimpleCommitAction : DumbAwareAction() {
     override fun actionPerformed(e: AnActionEvent) {
         println("Simple commit action fired.")
         val service = SimpleCommitService.getInstance(e.project) ?: return
-        service.state.process(e)
+        service.actionPerformed(e)
     }
 
 }

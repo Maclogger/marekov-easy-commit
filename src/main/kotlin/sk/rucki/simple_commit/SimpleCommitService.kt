@@ -1,16 +1,16 @@
 package sk.rucki.simple_commit
 
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vcs.VcsDataKeys
+import com.intellij.openapi.vcs.CommitMessageI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import sk.rucki.simple_commit.generators.FakeCommitMessageGenerator
+import kotlinx.coroutines.withContext
+import sk.rucki.simple_commit.diff_loading.ChangesLoader
 import sk.rucki.simple_commit.states.AbstractState
 import sk.rucki.simple_commit.states.IdleState
 
@@ -21,42 +21,40 @@ class SimpleCommitService(private val coroutineScope: CoroutineScope) {
         fun getInstance(project: Project?): SimpleCommitService? = project?.service()
     }
 
-    var state: AbstractState = IdleState(FakeCommitMessageGenerator(), coroutineScope)
+    var state: AbstractState = IdleState()
         get() = field
 
     private var job: Job? = null
 
-    fun startJob() {
-        if (job !== null) {
-            job.cancel()
-        }
+    fun actionPerformed(e: AnActionEvent) {
+        state = state.process(e, this)
+    }
 
+    fun startCommitMessageGeneration(commitMessageArea: CommitMessageI) {
+        cancelJob()
         job = coroutineScope.launch {
-            try {
-                val diff = createDiffFromChanges()
-                val generatedCommitMessage = commitMessageGenerator.generate(diff)
-                withContext(Dispatchers.EDT) {
-                    setTheTextOfTheCommitWindowTextArea(event, generatedCommitMessage)
-                }
+            val result = try {
+                val diff = withContext(Dispatchers.IO) { ChangesLoader }
+                val message = generator.generate(diff)
+                withContext(Dispatchers.EDT) { commitMessage.setCommitMessage(message) }
+                CreatedState()
             } catch (e: CancellationException) {
-                println("CancellationException caught")
                 throw e
             } catch (e: Exception) {
-                println("Exception caught: ${e.message}")
-                return ErrorState()
+                ErrorState(e.message)
+            }
+            withContext(Dispatchers.EDT) {   // a cancelled job never gets in here
+                state = result
+                job = null
             }
         }
 
     }
 
-
-    fun setTheTextOfTheCommitWindowTextArea(e: AnActionEvent, text: String) {
-        val commitMessageControlTextArea = e.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL)
-        if (commitMessageControlTextArea === null) {
-            println("Commit message control text area is null.")
-            return
-        }
-        commitMessageControlTextArea.setCommitMessage(text)
+    fun cancelJob() {
+        job?.cancel()
+        job = null
     }
+
 
 }

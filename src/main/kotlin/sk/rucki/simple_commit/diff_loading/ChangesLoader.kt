@@ -12,7 +12,7 @@ import com.intellij.vcs.commit.CommitWorkflowUi
 import java.nio.file.Path
 import java.io.StringWriter
 
-class ChangesLoader : IDiffLoader {
+object ChangesLoader : IDiffLoader {
 
     override fun loadDiff(e: AnActionEvent): String {
         val changes = loadChanges(e)
