@@ -10,7 +10,6 @@ const val DEFAULT_SYSTEM_PROMPT = """You write git commit messages in the Conven
 
 Structure:
 <type>(<scope>): <summary>
-
 - <change>
 - <change>
 
@@ -25,7 +24,6 @@ Rules:
 
 Example:
 feat(lang): add Polish language
-
 - add Polish translations for all UI texts
 - add Polish to the language picker
 - fall back to English for missing keys"""
