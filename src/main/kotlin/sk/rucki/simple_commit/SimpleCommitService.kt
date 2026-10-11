@@ -27,6 +27,10 @@ class SimpleCommitService(private val coroutineScope: CoroutineScope) {
     private var job: Job? = null
 
     fun startJob() {
+        if (job !== null) {
+            job.cancel()
+        }
+
         job = coroutineScope.launch {
             try {
                 val diff = createDiffFromChanges()

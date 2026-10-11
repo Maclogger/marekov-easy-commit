@@ -6,7 +6,8 @@ import javax.swing.Icon
 
 class GeneratingState : AbstractState() {
     override fun process(event: AnActionEvent): AbstractState {
-        TODO("Not implemented yet")
+        // TODO: stop the coroutine job in service
+        return IdleState()
     }
 
     override fun getIcon(): Icon {
