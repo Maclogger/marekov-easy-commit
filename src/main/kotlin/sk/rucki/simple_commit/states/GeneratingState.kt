@@ -7,8 +7,12 @@ import javax.swing.Icon
 
 class GeneratingState : AbstractState() {
     override fun process(event: AnActionEvent, service: SimpleCommitService): AbstractState {
-        // TODO: stop the coroutine job in service
+        service.cancelJob()
         return IdleState()
+    }
+
+    override fun canBeProcessed(e: AnActionEvent): Boolean {
+        return true
     }
 
     override fun getIcon(): Icon {

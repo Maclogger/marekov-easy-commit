@@ -1,11 +1,13 @@
 package sk.rucki.simple_commit
 
+import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.CommitMessageI
+import com.intellij.openapi.vcs.changes.Change
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,31 +23,32 @@ import sk.rucki.simple_commit.states.IdleState
 import kotlin.coroutines.cancellation.CancellationException
 
 @Service(Service.Level.PROJECT)
-class SimpleCommitService(private val coroutineScope: CoroutineScope) {
+class SimpleCommitService(
+    val project: Project,
+    private val coroutineScope: CoroutineScope,
+) {
 
     companion object {
         fun getInstance(project: Project?): SimpleCommitService? = project?.service()
     }
 
-    private var state: AbstractState = IdleState()
-        get() = field
+    @Volatile
+    var state: AbstractState = IdleState()
+        private set
 
-    val generator: ICommitMessageGenerator = FakeCommitMessageGenerator()
+    private val generator: ICommitMessageGenerator = FakeCommitMessageGenerator()
 
     private var job: Job? = null
 
     fun actionPerformed(e: AnActionEvent) {
-        val newState = state.process(e, this)
-        moveToAnotherState(newState, e)
+        moveToAnotherState(state.process(e, this))
     }
 
-    fun startCommitMessageGeneration(commitMessageArea: CommitMessageI, event: AnActionEvent) {
+    fun startCommitMessageGeneration(changes: List<Change>, commitMessageArea: CommitMessageI) {
         cancelJob()
         job = coroutineScope.launch {
             val finalState = try {
-                val diff = withContext(Dispatchers.IO) {
-                    ChangesLoader.loadDiff(event)
-                }
+                val diff = withContext(Dispatchers.IO) { ChangesLoader.buildDiff(project, changes) }
                 val generatedCommitMessage = generator.generate(diff)
                 withContext(Dispatchers.EDT) {
                     commitMessageArea.setCommitMessage(generatedCommitMessage)
@@ -57,8 +60,8 @@ class SimpleCommitService(private val coroutineScope: CoroutineScope) {
                 ErrorState(e.message)
             }
             withContext(Dispatchers.EDT) {   // a canceled job never gets in here
-                moveToAnotherState(finalState, event)
                 job = null
+                moveToAnotherState(finalState)
             }
         }
     }
@@ -68,9 +71,11 @@ class SimpleCommitService(private val coroutineScope: CoroutineScope) {
         job = null
     }
 
-    fun moveToAnotherState(newState: AbstractState, event: AnActionEvent) {
+    private fun moveToAnotherState(newState: AbstractState) {
+        if (newState === state) return
         state = newState
-        state.initialize(event, this)
+        state.initialize(this)
+        // Ask the toolbars to call update() now, so the icon changes immediately
+        ActivityTracker.getInstance().inc()
     }
-
 }

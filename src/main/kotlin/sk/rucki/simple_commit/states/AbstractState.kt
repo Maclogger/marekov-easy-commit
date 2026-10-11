@@ -1,27 +1,32 @@
 package sk.rucki.simple_commit.states
 
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.vcs.CommitMessageI
 import com.intellij.openapi.vcs.VcsDataKeys
 import sk.rucki.simple_commit.SimpleCommitService
+import sk.rucki.simple_commit.diff_loading.ChangesLoader
 import javax.swing.Icon
 
 abstract class AbstractState {
-    open fun initialize(event: AnActionEvent, service: SimpleCommitService) {
+    /** Called once when the service enters this state, on the EDT. */
+    open fun initialize(service: SimpleCommitService) {
     }
+
+    /** Called on click, on the EDT. Returns the next state. */
     abstract fun process(event: AnActionEvent, service: SimpleCommitService): AbstractState
+
+    /** Called from update() on a background thread, must be fast. */
     open fun canBeProcessed(e: AnActionEvent): Boolean {
-        return true
+        return ChangesLoader.loadChanges(e).isNotEmpty()
     }
+
     abstract fun getIcon(): Icon
 
-    protected fun getCommitMessageArea(event: AnActionEvent): CommitMessageI? {
-        return event.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL)
-    }
-
     protected fun startGeneratingNewCommitMessage(event: AnActionEvent, service: SimpleCommitService): AbstractState {
-        val commitMessageArea = getCommitMessageArea(event) ?: return this
-        service.startCommitMessageGeneration(commitMessageArea, event)
+        val commitMessageArea = event.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL) ?: return this
+        val changes = ChangesLoader.loadChanges(event)
+        if (changes.isEmpty()) return this
+
+        service.startCommitMessageGeneration(changes, commitMessageArea)
         return GeneratingState()
     }
 }

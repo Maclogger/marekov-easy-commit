@@ -28,6 +28,8 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="MyToolWindow" factoryClass="sk.rucki.simple_commit.MyToolWindowFactory"
                     icon="AllIcons.Toolwindows.ToolWindowPalette"/>
+        <notificationGroup id="Marekov Commit" displayType="BALLOON" bundle="messages.MyMessageBundle"
+                           key="notification.group.marekov.commit"/>
     </extensions>
 
     <actions>

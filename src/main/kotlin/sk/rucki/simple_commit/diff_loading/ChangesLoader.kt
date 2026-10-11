@@ -9,41 +9,31 @@ import com.intellij.openapi.vcs.changes.Change
 import com.intellij.openapi.vcs.changes.CommitContext
 import com.intellij.openapi.vcs.changes.CurrentContentRevision
 import com.intellij.vcs.commit.CommitWorkflowUi
-import java.nio.file.Path
 import java.io.StringWriter
 
 object ChangesLoader {
 
-    override fun loadDiff(e: AnActionEvent): String {
-        val changes = loadChanges(e)
-        return this.fromChangesToString(e.project, changes)
+    /**
+     * Reads the changes checked in the commit window. Cheap, safe to call from update().
+     */
+    fun loadChanges(e: AnActionEvent): List<Change> {
+        val workflowUi = e.getData(VcsDataKeys.COMMIT_WORKFLOW_UI) ?: return emptyList()
+        return loadVersionedSelectedChanges(workflowUi) + loadUnversionedSelectedChanges(workflowUi)
     }
 
-    private fun fromChangesToString(project: Project?, changes: List<Change>): String {
-        if (project === null) {
-            throw IllegalStateException("Project is null in fromChangesToString")
+    /**
+     * Builds a unified diff of the changes. Reads file contents, so never call it on the EDT.
+     */
+    fun buildDiff(project: Project, changes: List<Change>): String {
+        val basePath = project.basePath ?: return ""
+        val textChanges = changes.filterNot { change ->
+            listOfNotNull(change.beforeRevision, change.afterRevision).any { IdeaTextPatchBuilder.isBinaryRevision(it) }
         }
-
-        val basePath = Path.of(project.basePath ?: return "")
-        val patches = IdeaTextPatchBuilder.buildPatch(project, changes, basePath, false)
+        val patches = IdeaTextPatchBuilder.buildPatch(project, textChanges, basePath, false)
 
         val writer = StringWriter()
         UnifiedDiffWriter.write(project, patches, writer, "\n", CommitContext())
         return writer.toString()
-    }
-
-
-    fun loadChanges(e: AnActionEvent): List<Change> {
-        val workflowUi = e.getData(VcsDataKeys.COMMIT_WORKFLOW_UI)
-        if (workflowUi === null) {
-            println("Commit workflow UI is null.")
-            return emptyList()
-        }
-
-        val loadVersionedSelectedChanges = loadVersionedSelectedChanges(workflowUi)
-        val loadUnversionedSelectedChanges = loadUnversionedSelectedChanges(workflowUi)
-
-        return loadVersionedSelectedChanges + loadUnversionedSelectedChanges
     }
 
     private fun loadUnversionedSelectedChanges(workflowUi: CommitWorkflowUi): List<Change> {
