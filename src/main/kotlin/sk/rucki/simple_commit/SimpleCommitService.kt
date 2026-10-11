@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vcs.CommitMessageI
 import com.intellij.openapi.vcs.changes.Change
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.VisibleForTesting
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -36,7 +37,8 @@ class SimpleCommitService(
     var state: AbstractState = IdleState()
         private set
 
-    private val generator: ICommitMessageGenerator = FakeCommitMessageGenerator()
+    @VisibleForTesting
+    internal var generator: ICommitMessageGenerator = FakeCommitMessageGenerator()
 
     private var job: Job? = null
 
