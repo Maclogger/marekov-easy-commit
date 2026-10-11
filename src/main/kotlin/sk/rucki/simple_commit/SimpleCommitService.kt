@@ -15,7 +15,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sk.rucki.simple_commit.diff_loading.ChangesLoader
-import sk.rucki.simple_commit.generators.FakeCommitMessageGenerator
+import sk.rucki.simple_commit.generators.ClaudeCliCommitMessageGenerator
 import sk.rucki.simple_commit.generators.ICommitMessageGenerator
 import sk.rucki.simple_commit.states.AbstractState
 import sk.rucki.simple_commit.states.CreatedState
@@ -38,7 +38,7 @@ class SimpleCommitService(
         private set
 
     @VisibleForTesting
-    internal var generator: ICommitMessageGenerator = FakeCommitMessageGenerator()
+    internal var generator: ICommitMessageGenerator = ClaudeCliCommitMessageGenerator()
 
     private var job: Job? = null
 
