@@ -11,8 +11,7 @@ import javax.swing.Icon
 object SimpleCommitIcons {
     private const val FRAME_DELAY_MS = 100
 
-    val DISABLED: Icon = animated("disabled", 26)
-    val AVAILABLE: Icon = animated("available", 36)
+    val IDLE: Icon = animated("idle", 36)
     val GENERATING: Icon = animated("generating", 12)
     val CREATED: Icon = animated("created", 24)
     val ERROR: Icon = animated("error", 22)

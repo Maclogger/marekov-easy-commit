@@ -1,36 +1,58 @@
 package sk.rucki.simple_commit
 
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vcs.VcsDataKeys
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import sk.rucki.simple_commit.generators.FakeCommitMessageGenerator
+import sk.rucki.simple_commit.states.AbstractState
+import sk.rucki.simple_commit.states.IdleState
 
 @Service(Service.Level.PROJECT)
-class SimpleCommitService {
+class SimpleCommitService(private val coroutineScope: CoroutineScope) {
 
     companion object {
         fun getInstance(project: Project?): SimpleCommitService? = project?.service()
     }
 
-    @Volatile
-    var state: SimpleCommitState = SimpleCommitState.DISABLED
+    var state: AbstractState = IdleState(FakeCommitMessageGenerator(), coroutineScope)
+        get() = field
 
-    fun selectedFilesCountChanged(newCount: Int) {
-        val atLeastOneFileSelected = newCount >= 1
-        if (atLeastOneFileSelected) {
-            this.state = SimpleCommitState.AVAILABLE
+    private var job: Job? = null
+
+    fun startJob() {
+        job = coroutineScope.launch {
+            try {
+                val diff = createDiffFromChanges()
+                val generatedCommitMessage = commitMessageGenerator.generate(diff)
+                withContext(Dispatchers.EDT) {
+                    setTheTextOfTheCommitWindowTextArea(event, generatedCommitMessage)
+                }
+            } catch (e: CancellationException) {
+                println("CancellationException caught")
+                throw e
+            } catch (e: Exception) {
+                println("Exception caught: ${e.message}")
+                return ErrorState()
+            }
+        }
+
+    }
+
+
+    fun setTheTextOfTheCommitWindowTextArea(e: AnActionEvent, text: String) {
+        val commitMessageControlTextArea = e.getData(VcsDataKeys.COMMIT_MESSAGE_CONTROL)
+        if (commitMessageControlTextArea === null) {
+            println("Commit message control text area is null.")
             return
         }
-        this.state = SimpleCommitState.DISABLED
-    }
-
-    fun generateCommitMessage() {
-        if (!this.canGenerateCommitMessage()) {
-            throw IllegalStateException("Cannot generate commit message")
-        }
-    }
-
-    private fun canGenerateCommitMessage(): Boolean {
-        return this.state === SimpleCommitState.AVAILABLE
+        commitMessageControlTextArea.setCommitMessage(text)
     }
 
 }
