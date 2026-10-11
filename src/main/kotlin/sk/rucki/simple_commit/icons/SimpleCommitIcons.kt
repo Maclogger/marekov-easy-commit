@@ -1,4 +1,4 @@
-package sk.rucki.simple_commit
+package sk.rucki.simple_commit.icons
 
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.AnimatedIcon
