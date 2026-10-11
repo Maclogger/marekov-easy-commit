@@ -8,4 +8,5 @@ enum class SimpleCommitState(val icon: Icon) {
     GENERATING(SimpleCommitIcons.GENERATING),
     CREATED(SimpleCommitIcons.CREATED),
     ERROR(SimpleCommitIcons.ERROR);
+    fun canGenerateNewMessage() = this == AVAILABLE || this == ERROR || this == CREATED
 }

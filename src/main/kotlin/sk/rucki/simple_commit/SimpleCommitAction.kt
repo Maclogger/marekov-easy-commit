@@ -13,6 +13,7 @@ internal class SimpleCommitAction : DumbAwareAction() {
         val changes = ChangesLoader.loadChanges(e)
         service.selectedFilesCountChanged(changes.size)
 
+        e.presentation.isEnabled = service.state.canGenerateNewMessage()
         e.presentation.icon = service.state.icon
     }
 
