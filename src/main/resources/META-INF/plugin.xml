@@ -1,45 +1,67 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
-    <id>sk.rucki.simple_commit.simple_commit</id>
-
-    <!-- Public plugin name should be written in Title Case.
-     Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-name -->
-    <name>Simple_commit</name>
-
-    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <!-- Must never change after the first upload to JetBrains Marketplace -->
+    <id>sk.rucki.easycommit</id>
+    <name>Marekov Easy Commit</name>
     <vendor url="https://www.rucki.sk">Rucki</vendor>
 
-    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/best-practices-for-listing.html#plugin-description -->
     <description><![CDATA[
-        This plugin lets you create a commit message with simple click using the Claude subscription.
-        ]]></description>
+<p>Generates a commit message for your changes with a single click, using Claude through the
+<a href="https://claude.com/claude-code">Claude Code</a> command line tool and your own Claude subscription.</p>
 
-    <!-- Product and plugin compatibility requirements.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+<h3>How to use</h3>
+<ol>
+  <li>Open the <b>Commit</b> tool window and check the files you want to commit.</li>
+  <li>Click the sparkle button next to the commit message history button.</li>
+  <li>The generated message appears in the commit message field. Edit it if you like and commit.</li>
+</ol>
+<p>Clicking the button again while the message is being generated cancels the generation.</p>
+
+<h3>Features</h3>
+<ul>
+  <li>Messages in the <a href="https://www.conventionalcommits.org">Conventional Commits</a> format,
+      for example <code>feat(lang): add Polish language</code> followed by bullet points.</li>
+  <li>Uses only the files checked in the commit window, including new unversioned files.</li>
+  <li>Configurable model (Haiku, Sonnet, Opus), system prompt, timeout and maximum diff size in
+      <b>Settings | Tools | Marekov Easy Commit</b>.</li>
+</ul>
+
+<h3>Requirements</h3>
+<ul>
+  <li><a href="https://claude.com/claude-code">Claude Code</a> installed, with the <code>claude</code> command on your PATH,
+      and logged in to your Claude account.</li>
+  <li>Developed and tested on Linux. macOS should work the same way; Windows support is experimental.</li>
+</ul>
+
+<h3>Privacy</h3>
+<p>To generate a message, the plugin sends the diff of the checked changes (text files only, up to the configured size)
+to Anthropic through your local <code>claude</code> command. Nothing is sent until you click the button.
+The plugin itself collects no data.</p>
+
+<p><i>This plugin is not affiliated with or endorsed by Anthropic. Claude and Claude Code are trademarks of Anthropic.</i></p>
+]]></description>
+
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.vcs</depends>
 
-    <resource-bundle>messages.MyMessageBundle</resource-bundle>
+    <resource-bundle>messages.EasyCommitBundle</resource-bundle>
 
-    <!-- Extensions defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup id="Marekov Commit" displayType="BALLOON" bundle="messages.MyMessageBundle"
-                           key="notification.group.marekov.commit"/>
+        <notificationGroup id="Marekov Easy Commit" displayType="BALLOON" bundle="messages.EasyCommitBundle"
+                           key="notification.group.easy.commit"/>
         <applicationConfigurable parentId="tools"
                                  instance="sk.rucki.simple_commit.settings.SimpleCommitConfigurable"
-                                 id="sk.rucki.simple_commit.settings"
-                                 displayName="Marekov Easy Commit"/>
+                                 id="sk.rucki.easycommit.settings"
+                                 key="configurable.easy.commit.display.name"/>
     </extensions>
 
     <actions>
-        <action id="sk.rucki.simple_commit.SimpleCommitAction"
+        <action id="sk.rucki.easycommit.GenerateCommitMessage"
                 class="sk.rucki.simple_commit.SimpleCommitAction"
-                icon="AllIcons.Actions.Commit">
-            <add-to-group group-id="ChangesView.CommitToolbar" anchor="after" relative-to-action="Vcs.ShowMessageHistory"/>
+                icon="/icons/idle/1.svg">
+            <!-- Text and description come from EasyCommitBundle (action.<id>.text / .description) -->
+            <!-- The toolbar next to "Amend" in the commit window, right after the message history button -->
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="after" relative-to-action="Vcs.ShowMessageHistory"/>
         </action>
     </actions>
-
 </idea-plugin>

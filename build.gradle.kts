@@ -1,9 +1,16 @@
+import org.jetbrains.changelog.Changelog
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.changelog")
     id("org.jetbrains.intellij.platform")
+}
+
+kotlin {
+    // IntelliJ 2025.3 runs on Java 21; build with it regardless of JAVA_HOME
+    jvmToolchain(21)
 }
 
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
@@ -15,7 +22,45 @@ dependencies {
         intellijIdea("2025.3.6.1")
         testFramework(TestFrameworkType.Platform)
         bundledModule("intellij.platform.vcs.impl")
-        // Add plugin dependencies for compilation here, for example:
-        // bundledPlugin("com.intellij.java")
     }
+}
+
+intellijPlatform {
+    pluginConfiguration {
+        // "What's New" on the Marketplace page, taken from CHANGELOG.md for the current version
+        changeNotes = provider {
+            with(changelog) {
+                renderItem(getOrNull(project.version.toString()) ?: getUnreleased(), Changelog.OutputType.HTML)
+            }
+        }
+        ideaVersion {
+            sinceBuild = "253"
+            // No untilBuild: the plugin stays installable in newer IDEs
+        }
+    }
+
+    pluginVerification {
+        // The latest 2025.3.x release of every IDE the plugin can run in (each is a ~1 GB download, cached afterwards)
+        ides {
+            create(IntelliJPlatformType.IntellijIdea, "2025.3.6.1")
+            create(IntelliJPlatformType.PyCharm, "2025.3.6.1")
+            create(IntelliJPlatformType.WebStorm, "2025.3.6.1")
+            create(IntelliJPlatformType.PhpStorm, "2025.3.6.1")
+            create(IntelliJPlatformType.GoLand, "2025.3.5.1")
+            create(IntelliJPlatformType.CLion, "2025.3.6.2")
+            create(IntelliJPlatformType.RubyMine, "2025.3.6.1")
+            create(IntelliJPlatformType.RustRover, "2025.3.7")
+            create(IntelliJPlatformType.DataGrip, "2025.3.6")
+            create(IntelliJPlatformType.Rider, "2025.3.5.2")
+        }
+    }
+
+    publishing {
+        // Token from https://plugins.jetbrains.com/author/me/tokens, used by ./gradlew publishPlugin
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+    }
+}
+
+tasks.buildPlugin {
+    archiveBaseName = "marekov-easy-commit"
 }

@@ -120,7 +120,7 @@ class SimpleCommitFeatureTest : BasePlatformTestCase() {
 
         val error = waitForState<ErrorState>()
         assertEquals("claude is not installed", error.errorMessage)
-        assertNull(commitMessageArea.message)
+        assertEquals("The old message is cleared, nothing new is written", "", commitMessageArea.message)
         assertSame(SimpleCommitIcons.ERROR, updatedPresentationIcon())
 
         PlatformTestUtil.waitWithEventsDispatching("Error notification was not shown", { notifications.isNotEmpty() }, 10)
@@ -142,7 +142,7 @@ class SimpleCommitFeatureTest : BasePlatformTestCase() {
         PlatformTestUtil.waitWithEventsDispatching("Generation was not cancelled", { generator.wasCancelled }, 10)
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         assertTrue("A cancelled job must not change the state", service.state is IdleState)
-        assertNull(commitMessageArea.message)
+        assertEquals("The old message is cleared, nothing new is written", "", commitMessageArea.message)
     }
 
     fun `test click after a created message generates a new one`() {

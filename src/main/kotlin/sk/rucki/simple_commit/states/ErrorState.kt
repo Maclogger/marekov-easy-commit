@@ -14,9 +14,9 @@ class ErrorState(val errorMessage: String?) : AbstractState() {
 
     override fun initialize(service: SimpleCommitService) {
         NotificationGroupManager.getInstance()
-            .getNotificationGroup("Marekov Commit")
+            .getNotificationGroup("Marekov Easy Commit")
             .createNotification(
-                "Generation of simple commit message failed",
+                "Commit message generation failed",
                 errorMessage ?: "Unknown error",
                 NotificationType.ERROR,
             )
