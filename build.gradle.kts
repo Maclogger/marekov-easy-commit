@@ -40,18 +40,11 @@ intellijPlatform {
     }
 
     pluginVerification {
-        // The latest 2025.3.x release of every IDE the plugin can run in (each is a ~1 GB download, cached afterwards)
+        // The latest 2025.3.x release of the most important IDEs (each is a ~1 GB download, cached afterwards)
         ides {
             create(IntelliJPlatformType.IntellijIdea, "2025.3.6.1")
-            create(IntelliJPlatformType.PyCharm, "2025.3.6.1")
-            create(IntelliJPlatformType.WebStorm, "2025.3.6.1")
             create(IntelliJPlatformType.PhpStorm, "2025.3.6.1")
-            create(IntelliJPlatformType.GoLand, "2025.3.5.1")
-            create(IntelliJPlatformType.CLion, "2025.3.6.2")
-            create(IntelliJPlatformType.RubyMine, "2025.3.6.1")
-            create(IntelliJPlatformType.RustRover, "2025.3.7")
-            create(IntelliJPlatformType.DataGrip, "2025.3.6")
-            create(IntelliJPlatformType.Rider, "2025.3.5.2")
+            create(IntelliJPlatformType.WebStorm, "2025.3.6.1")
         }
     }
 
