@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-29
+
+### Added
+
+- Finds `claude` also outside the PATH, in the usual install locations of the native installer, npm, Homebrew, winget and Scoop
+- Windows support: finds both `claude.exe` and npm's `claude.cmd`
+
+### Fixed
+
+- The system prompt and settings are passed to Claude in files, so line breaks and quotes in the prompt are no longer broken on Windows
+- Checking only binary files shows an error instead of letting Claude make up a message for an empty diff
+- An empty answer from Claude shows an error instead of an empty commit message
+- A failure without any output from Claude now shows the exit code
+- Changes on the settings page are no longer lost when the settings are reloaded while the page is open (e.g. by Settings Sync)
+
 ## [1.0.0] - 2026-10-27
 
 ### Added
