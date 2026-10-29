@@ -51,6 +51,8 @@ class SimpleCommitService(
         job = coroutineScope.launch {
             val finalState = try {
                 val diff = withContext(Dispatchers.IO) { ChangesLoader.buildDiff(project, changes) }
+                // Empty when only binary files are checked; Claude would make up a message
+                if (diff.isBlank()) throw IllegalStateException("The checked files have no text changes to describe.")
                 val generatedCommitMessage = generator.generate(diff)
                 withContext(Dispatchers.EDT) {
                     commitMessageArea.setCommitMessage(generatedCommitMessage)

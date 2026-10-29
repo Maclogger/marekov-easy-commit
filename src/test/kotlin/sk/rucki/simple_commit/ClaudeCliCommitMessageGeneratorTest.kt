@@ -64,6 +64,18 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
         assertEquals("Claude failed: Not logged in", assertFails().message)
     }
 
+    fun `test failure without any output reports the exit code`() {
+        fakeClaude("cat > /dev/null; exit 3")
+
+        assertEquals("Claude failed: exit code 3", assertFails().message)
+    }
+
+    fun `test empty answer is reported`() {
+        fakeClaude("""cat > /dev/null; echo "   """")
+
+        assertEquals("Claude returned an empty message.", assertFails().message)
+    }
+
     fun `test missing claude is reported`() {
         val error = runBlocking {
             runCatching { ClaudeCliCommitMessageGenerator(findClaude = { null }).generate("diff") }.exceptionOrNull()

@@ -129,6 +129,17 @@ class SimpleCommitFeatureTest : BasePlatformTestCase() {
         assertEquals("claude is not installed", notification.content)
     }
 
+    fun `test only binary changes show an error instead of calling claude`() {
+        val generator = RecordingGenerator("unused")
+        service.generator = generator
+
+        click(changes = listOf(modifiedFileChange(project, "logo.png", "old", "new")))
+
+        val error = waitForState<ErrorState>()
+        assertEquals("The checked files have no text changes to describe.", error.errorMessage)
+        assertNull("Claude must not be called with an empty diff", generator.receivedDiff)
+    }
+
     fun `test second click while generating cancels the generation`() {
         val generator = HangingGenerator()
         service.generator = generator

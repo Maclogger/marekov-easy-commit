@@ -28,9 +28,10 @@
 
 <h3>Requirements</h3>
 <ul>
-  <li><a href="https://claude.com/claude-code">Claude Code</a> installed, with the <code>claude</code> command on your PATH,
-      and logged in to your Claude account.</li>
-  <li>Developed and tested on Linux. macOS should work the same way; Windows support is experimental.</li>
+  <li><a href="https://claude.com/claude-code">Claude Code</a> installed and logged in to your Claude account.
+      The plugin finds the <code>claude</code> command on your PATH or in the usual install locations
+      (native installer, npm, Homebrew, winget, Scoop).</li>
+  <li>Works on Linux, macOS and Windows. Developed and tested mainly on Linux.</li>
 </ul>
 
 <h3>Privacy</h3>

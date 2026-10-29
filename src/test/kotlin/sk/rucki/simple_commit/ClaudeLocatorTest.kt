@@ -53,6 +53,13 @@ class ClaudeLocatorTest : BasePlatformTestCase() {
         assertEquals(File(second, "claude").path, find())
     }
 
+    fun `test skips a folder named claude`() {
+        File(first, "claude").mkdir()
+        fakeFile(second, "claude")
+
+        assertEquals(File(second, "claude").path, find())
+    }
+
     fun `test windows prefers claude exe over claude cmd`() {
         fakeFile(first, "claude.cmd")
         fakeFile(second, "claude.exe")

@@ -14,7 +14,7 @@ fun findClaude(
     for (name in names) {
         for (dir in dirs) {
             val file = File(dir, name)
-            if (file.canExecute()) return file.path
+            if (file.isFile && file.canExecute()) return file.path
         }
     }
     return null

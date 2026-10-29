@@ -52,10 +52,15 @@ class ClaudeCliCommitMessageGenerator(
         try {
             // Interruptible, so cancelling the coroutine stops the waiting
             val output = runInterruptible { handler.runProcess(settings.timeoutSeconds * 1_000) }
+            val message = output.stdout.trim()
             when {
                 output.isTimeout -> throw ClaudeCliException("Claude did not answer within ${settings.timeoutSeconds} seconds.")
-                output.exitCode != 0 -> throw ClaudeCliException("Claude failed: " + output.stdout.ifBlank { output.stderr }.trim())
-                else -> output.stdout.trim()
+                output.exitCode != 0 -> {
+                    val reason = message.ifBlank { output.stderr.trim() }.ifBlank { "exit code ${output.exitCode}" }
+                    throw ClaudeCliException("Claude failed: $reason")
+                }
+                message.isEmpty() -> throw ClaudeCliException("Claude returned an empty message.")
+                else -> message
             }
         } finally {
             handler.destroyProcess()   // kills claude when cancelled; does nothing when it has already finished
