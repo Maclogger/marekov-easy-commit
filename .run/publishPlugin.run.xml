@@ -1,0 +1,27 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="Publish Plugin" type="GradleRunConfiguration" factoryName="Gradle">
+        <ExternalSystemSettings>
+            <option name="executionName"/>
+            <option name="externalProjectPath" value="$PROJECT_DIR$"/>
+            <option name="externalSystemIdString" value="GRADLE"/>
+            <option name="scriptParameters" value=""/>
+            <option name="taskDescriptions">
+                <list/>
+            </option>
+            <!-- Run in this order; a failing test or verification stops before the upload -->
+            <option name="taskNames">
+                <list>
+                    <option value="check"/>
+                    <option value="verifyPlugin"/>
+                    <option value="publishPlugin"/>
+                </list>
+            </option>
+            <option name="vmOptions" value=""/>
+        </ExternalSystemSettings>
+        <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+        <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+        <DebugAllEnabled>false</DebugAllEnabled>
+        <RunAsTest>false</RunAsTest>
+        <method v="2"/>
+    </configuration>
+</component>

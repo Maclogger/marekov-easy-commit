@@ -49,8 +49,9 @@ intellijPlatform {
     }
 
     publishing {
-        // Token from https://plugins.jetbrains.com/author/me/tokens, used by ./gradlew publishPlugin
-        token = providers.environmentVariable("PUBLISH_TOKEN")
+        // Token from https://plugins.jetbrains.com/author/me/tokens, used by ./gradlew publishPlugin.
+        // Kept outside the repo: publishToken=... in ~/.gradle/gradle.properties, or the PUBLISH_TOKEN env variable
+        token = providers.gradleProperty("publishToken").orElse(providers.environmentVariable("PUBLISH_TOKEN"))
     }
 }
 
