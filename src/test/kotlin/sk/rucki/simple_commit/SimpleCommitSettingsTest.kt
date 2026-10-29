@@ -16,6 +16,20 @@ class SimpleCommitSettingsTest : BasePlatformTestCase() {
         assertEquals(saved, loaded)
     }
 
+    fun `test loading new settings keeps the same state object`() {
+        val settings = SimpleCommitSettings.getInstance()
+        val stateBefore = settings.state
+        try {
+            settings.loadState(SimpleCommitSettings.State(model = ClaudeModel.OPUS, timeoutSeconds = 99))
+
+            assertSame(stateBefore, settings.state)
+            assertEquals(ClaudeModel.OPUS, stateBefore.model)
+            assertEquals(99, stateBefore.timeoutSeconds)
+        } finally {
+            settings.loadState(SimpleCommitSettings.State())   // the service is shared by all tests
+        }
+    }
+
     fun `test settings page opens and shows the stored values unmodified`() {
         val configurable = SimpleCommitConfigurable()
         try {

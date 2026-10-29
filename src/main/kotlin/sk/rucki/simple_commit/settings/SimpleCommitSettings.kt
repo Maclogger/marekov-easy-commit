@@ -5,6 +5,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
+import com.intellij.util.xmlb.XmlSerializerUtil
 
 const val DEFAULT_SYSTEM_PROMPT = """You write git commit messages in the Conventional Commits format.
 
@@ -42,12 +43,13 @@ class SimpleCommitSettings : PersistentStateComponent<SimpleCommitSettings.State
         var maxDiffChars: Int = 100_000,
     )
 
-    private var state = State()
+    private val state = State()
 
     override fun getState(): State = state
 
+    // Copies the values into the same object, so an open settings page never holds an outdated one
     override fun loadState(state: State) {
-        this.state = state
+        XmlSerializerUtil.copyBean(state, this.state)
     }
 
     companion object {
