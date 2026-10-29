@@ -2,3 +2,5 @@
 .idea
 .intellijPlatform
 build
+# Marketplace screenshots, demo video and the demo project (kept locally, not in git)
+marketplace-media/

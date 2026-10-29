@@ -2,14 +2,11 @@ package sk.rucki.simple_commit.generators
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.EnvironmentUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import sk.rucki.simple_commit.settings.SimpleCommitSettings
-import java.io.File
 
 class ClaudeCliException(message: String) : Exception(message)
 
@@ -17,14 +14,14 @@ class ClaudeCliException(message: String) : Exception(message)
  * Generates the commit message with `claude -p`. The diff goes in on stdin, the message comes back on stdout.
  */
 class ClaudeCliCommitMessageGenerator(
-    private val findClaude: () -> String? = ::findClaudeOnPath,
+    private val findClaude: () -> String? = ::findClaude,
     // Read on every generation, so changes in the settings apply right away
     private val loadSettings: () -> SimpleCommitSettings.State = { SimpleCommitSettings.getInstance().state.copy() },
 ) : ICommitMessageGenerator {
 
     override suspend fun generate(diff: String): String = withContext(Dispatchers.IO) {
         val settings = loadSettings()
-        val claude = findClaude() ?: throw ClaudeCliException("'claude' was not found on PATH. Install Claude Code and log in.")
+        val claude = findClaude() ?: throw ClaudeCliException("'claude' was not found on PATH or in the usual install locations. Install Claude Code and log in.")
 
         val diffFile = FileUtil.createTempFile("simple-commit", ".diff", true)
         diffFile.writeText(diff.take(settings.maxDiffChars))
@@ -59,11 +56,4 @@ class ClaudeCliCommitMessageGenerator(
             diffFile.delete()
         }
     }
-}
-
-/** Looks for `claude` on the PATH of the user's shell (an IDE started from the desktop may have a different PATH). */
-fun findClaudeOnPath(): String? {
-    val name = if (SystemInfo.isWindows) "claude.exe" else "claude"
-    val path = EnvironmentUtil.getValue("PATH") ?: System.getenv("PATH") ?: return null
-    return path.split(File.pathSeparator).map { File(it, name) }.firstOrNull { it.canExecute() }?.path
 }
