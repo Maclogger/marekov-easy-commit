@@ -33,28 +33,28 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
     override fun shouldRunTest(): Boolean = !SystemInfo.isWindows && super.shouldRunTest()
 
     fun `test sends the diff on stdin and returns the message`() {
-        fakeClaude("""printf '%s\n' "$@" > "${'$'}DIR/args"; cat > "${'$'}DIR/stdin"; echo "  feat: change a  """")
+        fakeClaude(copyingFiles + """echo "  feat: change a  """")
 
-        assertEquals("feat: change a", generate("+val a = 2\n"))
+        assertEquals("feat: change a", runBlocking { generator().generate("+val a = 2\n") })
         assertEquals("+val a = 2\n", File(dir, "stdin").readText())
 
         val args = File(dir, "args").readLines()
         assertEquals("-p", args[0])
         assertEquals("", args[args.indexOf("--tools") + 1])
         assertEquals("", args[args.indexOf("--setting-sources") + 1])
-        assertEquals("""{"alwaysThinkingEnabled":false}""", args[args.indexOf("--settings") + 1])
+        assertEquals("""{"alwaysThinkingEnabled":false}""", File(dir, "settings").readText())
         assertTrue(args.contains("--strict-mcp-config"))
     }
 
     fun `test uses the model, prompt and diff limit from the settings`() {
-        fakeClaude("""printf '%s\n' "$@" > "${'$'}DIR/args"; cat > "${'$'}DIR/stdin"; echo msg""")
-        val settings = SimpleCommitSettings.State(systemPrompt = "Be brief.", model = ClaudeModel.SONNET, maxDiffChars = 5)
+        fakeClaude(copyingFiles + "echo msg")
+        val settings = SimpleCommitSettings.State(systemPrompt = "Be brief.\nUse \"quotes\".", model = ClaudeModel.SONNET, maxDiffChars = 5)
 
         runBlocking { generator(settings).generate("1234567890") }
 
         val args = File(dir, "args").readLines()
         assertEquals("sonnet", args[args.indexOf("--model") + 1])
-        assertEquals("Be brief.", args[args.indexOf("--system-prompt") + 1])
+        assertEquals("Be brief.\nUse \"quotes\".", File(dir, "prompt").readText())
         assertEquals("12345", File(dir, "stdin").readText())
     }
 
@@ -87,10 +87,25 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
         generation.join()
 
         val pid = File(dir, "pid").readText().trim().toLong()
-        waitUntil { ProcessHandle.of(pid).map { !it.isAlive }.orElse(true) }
+        waitUntil { ProcessHandle.of(pid).filter { it.isAlive }.isEmpty }
     }
 
     // --- helpers ---
+
+    /**
+     * Script start that saves the args, stdin, and the prompt and settings files to `$DIR`
+     * (the generator deletes its temp files once claude exits).
+     */
+    private val copyingFiles = """
+        printf '%s\n' "$@" > "${'$'}DIR/args"; cat > "${'$'}DIR/stdin"
+        while [ ${'$'}# -gt 0 ]; do
+          case "${'$'}1" in
+            --system-prompt-file) cp "${'$'}2" "${'$'}DIR/prompt" ;;
+            --settings) cp "${'$'}2" "${'$'}DIR/settings" ;;
+          esac
+          shift
+        done
+    """.trimIndent() + "\n"
 
     /** Writes the fake `claude` script; `$DIR` in it points to the test directory. */
     private fun fakeClaude(body: String) {
@@ -102,8 +117,6 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
 
     private fun generator(settings: SimpleCommitSettings.State = SimpleCommitSettings.State(timeoutSeconds = 2)) =
         ClaudeCliCommitMessageGenerator(findClaude = { File(dir, "claude").path }, loadSettings = { settings })
-
-    private fun generate(diff: String): String = runBlocking { generator().generate(diff) }
 
     private fun assertFails(): ClaudeCliException = runBlocking {
         runCatching { generator().generate("diff") }.exceptionOrNull() as? ClaudeCliException
