@@ -5,9 +5,11 @@ import com.intellij.util.EnvironmentUtil
 import java.io.File
 
 /** Finds `claude`: first on the PATH, then in the places where its installers usually put it. */
-fun findClaude(): String? {
-    val names = if (SystemInfo.isWindows) listOf("claude.exe", "claude.cmd") else listOf("claude")
-    val dirs = pathDirs() + knownDirs()
+fun findClaude(
+    dirs: List<String> = pathDirs() + knownDirs(),
+    isWindows: Boolean = SystemInfo.isWindows,
+): String? {
+    val names = if (isWindows) listOf("claude.exe", "claude.cmd") else listOf("claude")
 
     for (name in names) {
         for (dir in dirs) {
