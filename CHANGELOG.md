@@ -2,9 +2,9 @@
 
 # Marekov Easy Commit Changelog
 
-## [Unreleased]
+## Unreleased
 
-## [1.0.1] - 2026-10-29
+## 1.0.1 - 2026-10-29
 
 ### Added
 
@@ -19,7 +19,7 @@
 - A failure without any output from Claude now shows the exit code
 - Changes on the settings page are no longer lost when the settings are reloaded while the page is open (e.g. by Settings Sync)
 
-## [1.0.0] - 2026-10-27
+## 1.0.0 - 2026-10-27
 
 ### Added
 
