@@ -17,6 +17,8 @@ class ClaudeCliCommitMessageGenerator(
     private val findClaude: () -> String? = ::findClaude,
     // Read on every generation, so changes in the settings apply right away
     private val loadSettings: () -> SimpleCommitSettings.State = { SimpleCommitSettings.getInstance().state.copy() },
+    // Claude Code tells the model the git branch of the directory it runs in
+    private val workDirectory: () -> String? = { null },
 ) : ICommitMessageGenerator {
 
     override suspend fun generate(diff: String): String = withContext(Dispatchers.IO) {
@@ -36,7 +38,8 @@ class ClaudeCliCommitMessageGenerator(
 
         val commandLine = GeneralCommandLine(
             claude, "-p", "Write the commit message for the diff on stdin.",
-            "--system-prompt-file", promptFile.path,
+            // Append, not replace: the default system prompt is the one that contains the git branch
+            "--append-system-prompt-file", promptFile.path,
             "--model", settings.model.cliName,
             "--tools", "",                    // Claude only reads the diff, it must not run anything
             "--no-session-persistence",       // do not save every generation in the user's history
@@ -45,7 +48,8 @@ class ClaudeCliCommitMessageGenerator(
             "--strict-mcp-config",            // speed: connecting to the user's MCP servers added ~2 s on every call
         )
             .withInput(diffFile)
-            .withWorkDirectory(FileUtil.getTempDirectory())   // so no project's CLAUDE.md is loaded
+            // The project, so Claude knows its git branch; --setting-sources "" still keeps its CLAUDE.md out
+            .withWorkDirectory(workDirectory() ?: FileUtil.getTempDirectory())
             .withCharset(Charsets.UTF_8)
 
         val handler = CapturingProcessHandler(commandLine)

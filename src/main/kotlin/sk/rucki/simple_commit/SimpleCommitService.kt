@@ -38,7 +38,7 @@ class SimpleCommitService(
         private set
 
     @VisibleForTesting
-    internal var generator: ICommitMessageGenerator = ClaudeCliCommitMessageGenerator()
+    internal var generator: ICommitMessageGenerator = ClaudeCliCommitMessageGenerator(workDirectory = { project.basePath })
 
     private var job: Job? = null
 

@@ -1,6 +1,7 @@
 package sk.rucki.simple_commit
 
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -40,6 +41,9 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
 
         val args = File(dir, "args").readLines()
         assertEquals("-p", args[0])
+        // Appended, so Claude Code's default system prompt with the git branch stays
+        assertTrue(args.contains("--append-system-prompt-file"))
+        assertFalse(args.contains("--system-prompt-file"))
         assertEquals("", args[args.indexOf("--tools") + 1])
         assertEquals("", args[args.indexOf("--setting-sources") + 1])
         assertEquals("""{"alwaysThinkingEnabled":false}""", File(dir, "settings").readText())
@@ -56,6 +60,23 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
         assertEquals("sonnet", args[args.indexOf("--model") + 1])
         assertEquals("Be brief.\nUse \"quotes\".", File(dir, "prompt").readText())
         assertEquals("12345", File(dir, "stdin").readText())
+    }
+
+    fun `test claude runs in the given work directory`() {
+        fakeClaude(copyingFiles + "echo msg")
+        val projectDir = File(dir, "project").apply { mkdirs() }
+
+        runBlocking { generator(workDirectory = projectDir.path).generate("diff") }
+
+        assertEquals(projectDir.canonicalPath, File(File(dir, "pwd").readText().trim()).canonicalPath)
+    }
+
+    fun `test claude runs in the temp directory without a work directory`() {
+        fakeClaude(copyingFiles + "echo msg")
+
+        runBlocking { generator().generate("diff") }
+
+        assertEquals(File(FileUtil.getTempDirectory()).canonicalPath, File(File(dir, "pwd").readText().trim()).canonicalPath)
     }
 
     fun `test failure reports what claude printed`() {
@@ -105,14 +126,14 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
     // --- helpers ---
 
     /**
-     * Script start that saves the args, stdin, and the prompt and settings files to `$DIR`
+     * Script start that saves the working directory, args, stdin, and the prompt and settings files to `$DIR`
      * (the generator deletes its temp files once claude exits).
      */
     private val copyingFiles = """
-        printf '%s\n' "$@" > "${'$'}DIR/args"; cat > "${'$'}DIR/stdin"
+        pwd > "${'$'}DIR/pwd"; printf '%s\n' "$@" > "${'$'}DIR/args"; cat > "${'$'}DIR/stdin"
         while [ ${'$'}# -gt 0 ]; do
           case "${'$'}1" in
-            --system-prompt-file) cp "${'$'}2" "${'$'}DIR/prompt" ;;
+            --append-system-prompt-file) cp "${'$'}2" "${'$'}DIR/prompt" ;;
             --settings) cp "${'$'}2" "${'$'}DIR/settings" ;;
           esac
           shift
@@ -127,8 +148,14 @@ class ClaudeCliCommitMessageGeneratorTest : BasePlatformTestCase() {
         }
     }
 
-    private fun generator(settings: SimpleCommitSettings.State = SimpleCommitSettings.State(timeoutSeconds = 2)) =
-        ClaudeCliCommitMessageGenerator(findClaude = { File(dir, "claude").path }, loadSettings = { settings })
+    private fun generator(
+        settings: SimpleCommitSettings.State = SimpleCommitSettings.State(timeoutSeconds = 2),
+        workDirectory: String? = null,
+    ) = ClaudeCliCommitMessageGenerator(
+        findClaude = { File(dir, "claude").path },
+        loadSettings = { settings },
+        workDirectory = { workDirectory },
+    )
 
     private fun assertFails(): ClaudeCliException = runBlocking {
         runCatching { generator().generate("diff") }.exceptionOrNull() as? ClaudeCliException
