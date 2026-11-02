@@ -21,6 +21,6 @@ Build with JDK 21 (`JAVA_HOME` must point to a full JDK, not just a Java runtime
 
 ## Releasing
 
-1. Raise `version` in `gradle.properties` and describe the changes in `CHANGELOG.md` under a new `## [x.y.z]` heading.
+1. Raise `version` in `gradle.properties` and describe the changes in `CHANGELOG.md` under a new `## x.y.z - YYYY-MM-DD` heading.
 2. `./gradlew test verifyPlugin buildPlugin`
 3. `PUBLISH_TOKEN=<token> ./gradlew publishPlugin` (the very first version must be uploaded by hand on the Marketplace website).

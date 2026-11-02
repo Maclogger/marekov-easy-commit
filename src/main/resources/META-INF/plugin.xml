@@ -36,7 +36,8 @@
 
 <h3>Privacy</h3>
 <p>To generate a message, the plugin sends the diff of the checked changes (text files only, up to the configured size)
-to Anthropic through your local <code>claude</code> command. Nothing is sent until you click the button.
+to Anthropic through your local <code>claude</code> command. Claude Code runs in the project directory and adds its usual
+context: the current git branch, the git status and recent commit messages. Nothing is sent until you click the button.
 The plugin itself collects no data.</p>
 
 <p><i>This plugin is not affiliated with or endorsed by Anthropic. Claude and Claude Code are trademarks of Anthropic.</i></p>

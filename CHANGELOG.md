@@ -4,6 +4,16 @@
 
 ## Unreleased
 
+## 1.0.2 - 2026-11-02
+
+### Fixed
+
+- The system prompt can now ask for the current git branch name: Claude runs in the project directory and gets the branch from Claude Code, instead of ignoring the request
+
+### Changed
+
+- Your system prompt is now added to Claude Code's default system prompt instead of replacing it. Claude Code also passes on the git status and recent commit messages, so the request uses a few thousand more input tokens
+
 ## 1.0.1 - 2026-10-29
 
 ### Added
